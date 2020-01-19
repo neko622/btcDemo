@@ -1,0 +1,79 @@
+plugins {
+    id 'org.springframework.boot' version '2.2.3.RELEASE'
+    id 'io.spring.dependency-management' version '1.0.8.RELEASE'
+    id 'java'
+}
+
+group = 'com.hhekj.btc.hhekj'
+version = '0.0.1-SNAPSHOT'
+sourceCompatibility = '1.8'
+
+
+configurations {
+    developmentOnly
+    runtimeClasspath {
+        extendsFrom developmentOnly
+    }
+    compileOnly {
+        extendsFrom annotationProcessor
+    }
+}
+
+repositories {
+    mavenCentral()
+    maven{ url 'http://maven.aliyun.com/nexus/content/groups/public/'}
+}
+
+
+dependencies {
+
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+
+    // https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-freemarker
+    compile group: 'org.springframework.boot', name: 'spring-boot-starter-freemarker', version: '2.1.8.RELEASE'
+    compile group: 'mysql', name: 'mysql-connector-java', version: '8.0.17'
+    // gradle支持lombok的配置
+    annotationProcessor 'org.projectlombok:lombok:1.18.10'
+    compileOnly 'org.projectlombok:lombok:1.18.10'
+    // https://mvnrepository.com/artifact/org.projectlombok/lombok
+//    compile group: 'org.projectlombok', name: 'lombok', version: '1.18.8'
+    // https://mvnrepository.com/artifact/com.alibaba/fastjson
+    compile group: 'com.alibaba', name: 'fastjson', version: '1.2.60'
+    // https://mvnrepository.com/artifact/com.alibaba/druid
+    compile group: 'com.alibaba', name: 'druid', version: '1.1.20'
+    // https://mvnrepository.com/artifact/com.baomidou/mybatis-plus-boot-starter
+    compile group: 'com.baomidou', name: 'mybatis-plus-boot-starter', version: '3.2.0'
+    // https://mvnrepository.com/artifact/org.mybatis/mybatis
+    compile group: 'org.mybatis', name: 'mybatis', version: '3.5.2'
+    // https://mvnrepository.com/artifact/redis.clients/jedis
+    compile group: 'redis.clients', name: 'jedis', version: '3.1.0'
+    // https://mvnrepository.com/artifact/com.aliyun/aliyun-java-sdk-dm
+    compile group: 'com.aliyun', name: 'aliyun-java-sdk-dm', version: '3.3.1'
+    // https://mvnrepository.com/artifact/com.aliyun/aliyun-java-sdk-core
+    compile group: 'com.aliyun', name: 'aliyun-java-sdk-core', version: '4.4.6'
+    compile group: 'org.web3j', name: 'core', version: '4.5.5'
+
+    // https://mvnrepository.com/artifact/io.github.novacrypto/BIP39
+    compile group: 'io.github.novacrypto', name: 'BIP39', version: '0.1.9'
+
+    compile group: 'com.github.briandilley.jsonrpc4j', name: 'jsonrpc4j', version: '1.1'
+
+    // https://mvnrepository.com/artifact/wf.bitcoin/JavaBitcoindRpcClient
+    compile group: 'wf.bitcoin', name: 'JavaBitcoindRpcClient', version: '1.0.0'
+
+    // https://mvnrepository.com/artifact/org.bitcoinj/bitcoinj-core
+    compile group: 'org.bitcoinj', name: 'bitcoinj-core', version: '0.14.7'
+
+    compile group: 'com.github.briandilley.jsonrpc4j', name: 'jsonrpc4j', version: '1.1'
+
+    // https://mvnrepository.com/artifact/wf.bitcoin/JavaBitcoindRpcClient
+    compile group: 'wf.bitcoin', name: 'JavaBitcoindRpcClient', version: '1.0.0'
+
+
+
+}
+
+test {
+    useJUnitPlatform()
+}
