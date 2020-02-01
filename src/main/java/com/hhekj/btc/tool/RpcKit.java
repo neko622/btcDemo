@@ -54,6 +54,23 @@ public class RpcKit {
 
 
     /**
+     * 创建裸交易
+     * */
+    public String createRawTransaction(Object[] obj,Map map)throws Throwable{
+        return client.invoke("createrawtransaction", new Object[]{obj,map},Object.class).toString();
+    }
+
+
+    /**
+     * 签名裸交易
+     * */
+    public String signRawTransaction(Object[] obj,Map map)throws Throwable{
+        return client.invoke("signrawtransaction", new Object[]{obj,map},Object.class).toString();
+    }
+
+
+
+    /**
      *返回最高位的区块哈希。
      * */
     public String getbestblockhash()throws  Throwable{

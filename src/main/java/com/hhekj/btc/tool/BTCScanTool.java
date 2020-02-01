@@ -10,6 +10,7 @@ import com.hhekj.btc.model.WalletInfo;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -29,6 +30,21 @@ public class BTCScanTool {
             walletKit = RpcKit.getInstance();
         } catch (Throwable throwable) {
             throwable.printStackTrace();
+        }
+    }
+
+
+
+    /**
+     * 创建裸交易
+     * */
+    public static String createRawTransaction(Object[] obj, Map map){
+        try{
+            String result = walletKit.createRawTransaction(obj,map);
+            return result;
+        }catch(Throwable e){
+            e.printStackTrace();
+            return "aa";
         }
     }
 
@@ -185,6 +201,7 @@ public class BTCScanTool {
         }
 
     }
+
 
 
     /**
