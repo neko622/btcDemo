@@ -9,6 +9,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.bitcoinj.core.ECKey;
 import org.bitcoinj.crypto.HDUtils;
 import org.bitcoinj.params.MainNetParams;
+import org.bitcoinj.params.TestNet3Params;
 import org.bitcoinj.wallet.DeterministicKeyChain;
 import org.bitcoinj.wallet.DeterministicSeed;
 import org.bitcoinj.wallet.UnreadableWalletException;
@@ -62,8 +63,13 @@ public class WalletTool {
         ECKey ecKey = ECKey.fromPrivate(privKeyBTC);
 
         String publicKey = Numeric.toHexStringNoPrefixZeroPadded(new BigInteger(ecKey.getPubKey()), 66);
-        String privateKey = ecKey.getPrivateKeyEncoded(MainNetParams.get()).toString();
-        String address = ecKey.toAddress(MainNetParams.get()).toString();
+        //主网参数
+//        String privateKey = ecKey.getPrivateKeyEncoded(MainNetParams.get()).toString();
+//        String address = ecKey.toAddress(MainNetParams.get()).toString();
+
+        //测试网参数
+        String privateKey = ecKey.getPrivateKeyEncoded(TestNet3Params.get()).toString();
+        String address = ecKey.toAddress(TestNet3Params.get()).toString();
          log.info(privateKey);
          log.info(address);
         BtcWalletAccount btcWallet = BtcWalletAccount.builder().address(address).publicKey(publicKey).privateKey(privateKey).mnemonic(mnemonics).build();

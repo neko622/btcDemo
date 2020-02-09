@@ -25,8 +25,7 @@ public class SysDictionaryServiceImpl
      */
     @Override
     public Integer findBtcLatestScanBlock() {
-        return Integer.valueOf(lambdaQuery()
-                .eq(SysDictionary::getName, btcScanLatestBlockNum).one().getValue());
+        return Integer.valueOf(lambdaQuery().eq(SysDictionary::getName, btcScanLatestBlockNum).one().getValue());
     }
 
     /**

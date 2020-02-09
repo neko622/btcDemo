@@ -1,6 +1,7 @@
 package com.hhekj.btc.tool;
 
 
+import com.alibaba.fastjson.JSON;
 import com.googlecode.jsonrpc4j.JsonRpcHttpClient;
 import lombok.extern.slf4j.Slf4j;
 import org.java_websocket.util.Base64;
@@ -11,8 +12,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Author: JianXin
- * Description: 比特币钱包 TODO 未完
+ * Author: Angel
+ * Description: 比特币钱包
  * Date: 2019-11-20 18:36
  **/
 @Slf4j
@@ -22,7 +23,7 @@ public class RpcKit {
     private final static String RPCUSER = "test";
     private final static String RPCPASSWORD = "test";
 
-    private final static String url = "http://35.185.181.99:18332";
+    private final static String url = "http://35.185.181.99:18332/wallet/btctest";
 
 
     private JsonRpcHttpClient client;
@@ -49,7 +50,20 @@ public class RpcKit {
         Map<String, String> headers = new HashMap<>(1);
         headers.put("Authorization", "Basic " + cred);
         client = new JsonRpcHttpClient(new URL(url), headers);
+        client.setConnectionTimeoutMillis(5000000);
 
+    }
+
+
+    public String walletPassPhrase(String password)throws  Throwable{
+        Object obj = client.invoke("walletpassphrase",new Object[]{password},Object.class);
+        return JSON.toJSONString(obj);
+    }
+
+
+    public String encryptWallet(String password)throws  Throwable{
+        Object obj = client.invoke("encryptwallet",new Object[]{password},Object.class);
+        return JSON.toJSONString(obj);
     }
 
 
@@ -64,10 +78,18 @@ public class RpcKit {
     /**
      * 签名裸交易
      * */
-    public String signRawTransaction(Object[] obj,Map map)throws Throwable{
-        return client.invoke("signrawtransaction", new Object[]{obj,map},Object.class).toString();
+    public String signRawTransaction(String hexstring,Object[] privateKey)throws Throwable{
+        Object obj =  client.invoke("signrawtransactionwithkey", new Object[]{hexstring,privateKey},Object.class);
+        return JSON.toJSONString(obj);
     }
 
+
+    /**
+     * 广播裸交易
+     * */
+    public String sendRawTransaction(String transaction)throws Throwable{
+        return client.invoke("sendrawtransaction", new Object[]{transaction},Object.class).toString();
+    }
 
 
     /**
@@ -84,8 +106,22 @@ public class RpcKit {
      * @return 地址
      */
     public String getBlock(String headerHash) throws Throwable {
+        Object obj = client.invoke("getblock", new Object[]{headerHash},Object.class);
 
-        return client.invoke("getblock", new Object[]{headerHash},Object.class).toString();
+        return JSON.toJSONString(obj);
+    }
+
+
+
+
+
+    /**
+     * 生成新的找零地址
+     * */
+    public String getRawChangeAddress()throws  Throwable{
+        Object obj = client.invoke("getrawchangeaddress", new Object[]{},Object.class);
+
+        return JSON.toJSONString(obj);
     }
 
     /**
@@ -102,19 +138,13 @@ public class RpcKit {
      * 获取指定交易id的交易详情
      * */
     public String getrawtransaction(String txid)throws  Throwable{
-        return client.invoke("getrawtransaction", new Object[]{txid,1},Object.class).toString();
+        Object obj = client.invoke("getrawtransaction", new Object[]{txid,1},Object.class);
+
+        return JSON.toJSONString(obj);
     }
 
 
 
-    /**
-     * 生成新的接收地址
-     *
-     * @return 地址
-     */
-    public String buildBtcAddress() throws Throwable {
-        return client.invoke("getnewaddress", new Object[]{}, Object.class).toString();
-    }
 
     /**
      * 验证地址是否存在
@@ -122,7 +152,8 @@ public class RpcKit {
      * @param address 地址
      */
     public String validBtcAddress(String address) throws Throwable {
-        return client.invoke("validateaddress", new Object[]{address}, Object.class).toString();
+        Object obj = client.invoke("validateaddress", new Object[]{address}, Object.class);
+        return JSON.toJSONString(obj);
     }
 
 
@@ -167,14 +198,16 @@ public class RpcKit {
      * 查询指定交易
      * */
     public String getTransaction(String txid) throws  Throwable{
-        return client.invoke("settxfee", new Object[]{txid}, Object.class).toString();
+        Object obj = client.invoke("gettransaction", new Object[]{txid}, Object.class);
+        return JSON.toJSONString(obj);
     }
 
     /**
      * 获取交易池信息
      * */
     public String getMemPoolInfo() throws Throwable{
-        return client.invoke("getmempoolinfo", new Object[]{}, Object.class).toString();
+        Object obj = client.invoke("getmempoolinfo", new Object[]{}, Object.class);
+        return JSON.toJSONString(obj);
     }
 
     /**
@@ -189,20 +222,22 @@ public class RpcKit {
     }
 
     /**
-     * 获取地址下未花费的币量
+     * 查询钱包UTXO
      *
      * @return String
      */
-    public String listunspent(int minconf, int maxconf, String address) throws Throwable {
+    public String listUnspent(int minconf, int maxconf, String address) throws Throwable {
         String[] addresss = new String[]{address};
-        return client.invoke("listunspent", new Object[]{minconf, maxconf, addresss}, Object.class).toString();
+        Object obj =  client.invoke("listunspent", new Object[]{minconf, maxconf, addresss}, Object.class);
+        return JSON.toJSONString(obj);
     }
 
     /**
      * 获取钱包信息
      */
     public String getWalletInfo() throws Throwable {
-        return client.invoke("getwalletinfo", new Object[]{}, Object.class).toString();
+        Object obj = client.invoke("getwalletinfo", new Object[]{}, Object.class);
+        return JSON.toJSONString(obj);
     }
 
     /**
@@ -217,6 +252,15 @@ public class RpcKit {
      */
     public String getbalance(String account) throws Throwable {
         return client.invoke("getbalance", new Object[]{account}, Object.class).toString();
+    }
+
+
+
+    /**
+     * 导入私钥
+     * */
+    public Object importPrivKey(String privateKey)throws Throwable{
+        return client.invoke("importprivkey", new Object[]{privateKey,"btctest",true}, Object.class);
     }
 
 }

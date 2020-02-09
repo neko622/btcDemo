@@ -26,30 +26,6 @@ public class BlockTransferIntoServiceImpl
     private BlockTransferIntoMapper mapper;
 
 
-    /**
-     * 修改状态
-     * <p>
-     *
-     * @param id     id
-     * @param status 状态
-     */
-    @Override
-    public void changeStatus(Integer id, TransferStatus status) {
-        BlockTransferInto blockTransferInto = new BlockTransferInto();
-        blockTransferInto.setStatus(status.value());
-        lambdaUpdate().eq(BlockTransferInto::getId, id).update(blockTransferInto);
-    }
-
-    /**
-     * 根据状态查询
-     *
-     * @param status 状态
-     */
-    @Override
-    public List<BlockTransferInto> listByStatus(TransferStatus status) {
-        return lambdaQuery().eq(BlockTransferInto::getStatus, status.value()).eq(BlockTransferInto::getAudit,"ok").list();
-    }
-
     @Override
     public boolean existsTxHash(String txHash) {
         return lambdaQuery().eq(BlockTransferInto::getTxHash, txHash).count() > 0;
@@ -123,6 +99,7 @@ public class BlockTransferIntoServiceImpl
 
     @Override
     public List<Map<String, Object>> collectVerify() {
+
         return mapper.collectVerify();
     }
 }

@@ -1,14 +1,17 @@
 package com.hhekj.btc.tool;
 
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.alibaba.fastjson.serializer.SerializerFeature;
 import com.hhekj.btc.common.TxState;
-import com.hhekj.btc.model.BtcBlock;
-import com.hhekj.btc.model.BtcTransaction;
-import com.hhekj.btc.model.MemPoolInfo;
-import com.hhekj.btc.model.WalletInfo;
+import com.hhekj.btc.model.*;
+import wf.bitcoin.javabitcoindrpcclient.BitcoinJSONRPCClient;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
@@ -35,6 +38,154 @@ public class BTCScanTool {
 
 
 
+
+
+    /**
+     * 转账
+     * @param
+     *  toAddress 转账地址
+     * @param money 转账金额
+     * @param privateKey 私钥
+     * */
+
+    public static boolean transferToAddress(String toAddress,String money,String privateKey){
+        MemPoolInfo memPoolInfo = BTCScanTool.getMemPoolInfo();
+        BigDecimal fees = new BigDecimal(memPoolInfo.getMempoolminfee());
+        setTxFrees(fees.doubleValue());
+        String txid = sendToAddress(toAddress,new BigDecimal(money)); //返回交易id
+        if (!txid.isEmpty()){
+            return true;
+        }
+
+
+        return false;
+    }
+
+    /**
+     * 转账
+     * @param
+     *  toAddress 转账地址
+     * @param privateKey 私钥
+     * */
+    public static boolean transfer(String toAddress,String address,String privateKey){
+
+
+        //获取钱包utxo
+        ArrayList<WalletUTXO> utxos = listUnspent(address);
+
+        MemPoolInfo memPoolInfo = BTCScanTool.getMemPoolInfo();
+        BigDecimal fees = new BigDecimal(memPoolInfo.getMempoolminfee());
+
+        if(utxos.size() > 0){
+            //创建裸交易
+            JSONObject obj = new JSONObject();
+            String txid = utxos.get(0).getTxid();
+            obj.put("txid",txid);
+            obj.put("vout",utxos.get(0).getVout());
+            Object[] arr = new Object[]{obj};
+            JSONObject map = new JSONObject();
+            map.put(toAddress,utxos.get(0).getAmount().subtract(fees));
+            String transactionStr = createRawTransaction(arr,map);
+
+
+            String[] privateKeyArr = new String[]{privateKey};
+
+            //签名裸交易
+            TransferInfo info = signRawTransaction(transactionStr,privateKeyArr);
+
+            //广播裸交易
+            String s = sendRawTransaction(info.getHex());
+            if (!s.isEmpty()){
+                return  true;
+            }
+        }
+
+
+
+        return false;
+    }
+
+
+
+    /**
+     * 导入私钥
+     * */
+    public static boolean importPrivKey(String privateKey){
+        try{
+           Object result = walletKit.importPrivKey(privateKey);
+            System.out.println(result);
+            if (null == result)
+                return true;
+        } catch(Throwable e){
+            e.printStackTrace();
+            return true;
+        }
+        return false;
+    }
+
+
+    /**
+     * 查询钱包UTXO
+     * @param
+     *  address 钱包地址
+     * */
+    public static ArrayList<WalletUTXO> listUnspent(String address){
+        ArrayList<WalletUTXO> walletUTXOs = new ArrayList<>();
+        try{
+            String result = walletKit.listUnspent(6,9999999,address);
+            System.out.println(result);
+            JSONArray jsonObject = JSONArray.parseArray(result);
+            int size = jsonObject.size();
+            for (int i = 0; i <size; i++){
+                WalletUTXO utxo = JSONObject.parseObject(jsonObject.get(i).toString(),WalletUTXO.class);
+                walletUTXOs.add(utxo);
+            }
+        }catch (Throwable e){
+            e.printStackTrace();
+        }
+
+        return walletUTXOs;
+    }
+
+
+
+    /**
+     * 广播裸交易
+     * */
+    public static String sendRawTransaction(String transfer){
+        try{
+            String result = walletKit.sendRawTransaction(transfer);
+            System.out.println(result);
+            return result;
+        }catch(Throwable e){
+            return "";
+        }
+    }
+
+
+
+    /**
+     * 签名裸交易
+     * @param
+     *  hexstring 未签名
+     *  privaKey 私钥数组
+     *
+     * */
+    public static TransferInfo signRawTransaction(String hexstring,Object[] privateKey){
+        try{
+            String result = walletKit.signRawTransaction(hexstring,privateKey);
+            JSONObject jsonObject = JSONObject.parseObject(result);
+            TransferInfo transaction = jsonObject.toJavaObject(TransferInfo.class);
+            System.out.println(transaction);
+            return transaction;
+        }catch(Throwable e){
+            e.printStackTrace();
+            return null;
+        }
+
+    }
+
+
     /**
      * 创建裸交易
      * */
@@ -43,10 +194,22 @@ public class BTCScanTool {
             String result = walletKit.createRawTransaction(obj,map);
             return result;
         }catch(Throwable e){
-            e.printStackTrace();
-            return "aa";
+            return "";
         }
     }
+
+
+   public static String getRawChangeAddress(){
+        try{
+            String address = walletKit.getRawChangeAddress();
+            System.out.println(address);
+            return address;
+        }catch (Throwable e){
+            e.printStackTrace();
+        }
+
+        return "";
+   }
 
 
     /**
@@ -55,14 +218,13 @@ public class BTCScanTool {
     public static BtcTransaction scanTxidTransaction(String txid){
        try{
            String result = walletKit.getrawtransaction(txid);
-           JSONObject jsonObject = JSONObject.parseObject(show(result));
+           JSONObject jsonObject = JSONObject.parseObject(result);
            BtcTransaction transaction = jsonObject.toJavaObject(BtcTransaction.class);
-           System.out.println(transaction);
            return transaction;
        }catch (Throwable e){
+           e.printStackTrace();
            return null;
        }
-
 
     }
 
@@ -74,7 +236,7 @@ public class BTCScanTool {
        try{
         String numberHash = walletKit.getblockhash(number);
         String result = walletKit.getBlock(numberHash);
-        JSONObject jsonObject = JSONObject.parseObject(show(result));
+        JSONObject jsonObject = JSONObject.parseObject(result);
         BtcBlock block = jsonObject.toJavaObject(BtcBlock.class);
         return block;
        }catch (Throwable e){
@@ -83,21 +245,45 @@ public class BTCScanTool {
        }
     }
 
-
-    public static WalletInfo getWalletInfo() throws Throwable {
-        String result = walletKit.getWalletInfo();
-        JSONObject jsonObject = JSONObject.parseObject(result);
-        WalletInfo walletInfo = jsonObject.toJavaObject(WalletInfo.class);
-        return walletInfo;
+    /**
+     * 根据区块哈希获取区块
+     * */
+    public static BtcBlock getBlock(String numberHash){
+        try{
+            String result = walletKit.getBlock(numberHash);
+            JSONObject jsonObject = JSONObject.parseObject(result);
+            BtcBlock block = jsonObject.toJavaObject(BtcBlock.class);
+            return block;
+        }catch (Throwable e){
+            e.printStackTrace();
+            return null;
+        }
     }
+
+
+
+    public static WalletInfo getWalletInfo()  {
+        try {
+            String result = walletKit.getWalletInfo();
+            JSONObject jsonObject = JSONObject.parseObject(result);
+            WalletInfo walletInfo = jsonObject.toJavaObject(WalletInfo.class);
+            return walletInfo;
+        }catch (Throwable e){
+            e.printStackTrace();
+            return null;
+        }
+
+    }
+
+
+
 
 
     public static boolean validBtcAddress(String address){
         try{
             String result = walletKit.validBtcAddress(address);
-            result = show(result);
            JSONObject obj = JSONObject.parseObject(result);
-            if(obj.get("isvalid").equals("true")){
+            if("true".equals(obj.get("isvalid").toString())){
                 return true;
             }
         }catch (Throwable e){
@@ -128,7 +314,7 @@ public class BTCScanTool {
                 return true;
             }
         }catch (Throwable e){
-
+            e.printStackTrace();
         }
         return false;
     }
@@ -144,11 +330,10 @@ public class BTCScanTool {
     public static TxState queryTx(String txHash) {
         try{
             String resource = walletKit.getTransaction(txHash);
-            resource = show(resource);
             JSONObject jsonObject = JSONObject.parseObject(resource);
             BtcTransaction transaction = jsonObject.toJavaObject(BtcTransaction.class);
             BigInteger b = transaction.getConfirmations();
-            if (b.intValue() <= 6 ){
+            if (b.intValue() >= 6 ){
                 return TxState.CONFIRMED;
             }
         }catch(Throwable e){
@@ -163,7 +348,6 @@ public class BTCScanTool {
         MemPoolInfo poolInfo = null;
         try{
             String result = walletKit.getMemPoolInfo();
-            result = show(result);
             JSONObject jsonObject = JSONObject.parseObject(result);
             poolInfo = JSONObject.toJavaObject(jsonObject,MemPoolInfo.class);
         }catch(Throwable e){
@@ -211,59 +395,13 @@ public class BTCScanTool {
        try{
         String bestHash = walletKit.getbestblockhash();
         String result = walletKit.getBlock(bestHash);
-           System.out.println(result);
-        JSONObject jsonObject = JSONObject.parseObject(show(result));
+        JSONObject jsonObject = JSONObject.parseObject(result);
         BtcBlock block = jsonObject.toJavaObject(BtcBlock.class);
         return block;
        }catch (Throwable e){
            e.printStackTrace();
            return null;
        }
-    }
-
-
-
-
-    public static String show(String resouces){
-        resouces = resouces.replaceAll("=",":");
-        resouces = resouces.replaceAll("_","");
-        resouces = resouces.replaceAll(" ","");
-        String pattern  = "[a-zA-Z]*:";
-        Pattern r = Pattern.compile(pattern);
-        Matcher m = r.matcher(resouces);
-        while (m.find()) {
-            String str = m.group(0);
-            String str2 = str.replace(":","");
-            resouces = resouces.replaceFirst(str,"\""+str.replace(":","")+"\""+":");
-
-        }
-
-        pattern  = "[A-Za-z0-9_\\.-]+\\,";
-        r = Pattern.compile(pattern);
-        Matcher m2 = r.matcher(resouces);
-        while (m2.find()) {
-            String str = m2.group(0);
-            String str2 = str.replace(",","");
-            resouces = resouces.replaceFirst(str,"\""+str2+"\",");
-        }
-
-        pattern  = ":[a-zA-Z0-9\\.-]+";
-        r = Pattern.compile(pattern);
-        m2 = r.matcher(resouces);
-        while (m2.find()) {
-            String str = m2.group(0);
-            String str2 = str.replace(":","");
-            resouces = resouces.replaceFirst(str,":\""+str2+"\"");
-        }
-        pattern  = "[a-zA-Z0-9\\.]+]";
-        r = Pattern.compile(pattern);
-        m2 = r.matcher(resouces);
-        while (m2.find()) {
-            String str = m2.group(0);
-            String str2 = str.replace("]","");
-            resouces = resouces.replaceFirst(str,"\""+str2+"\"]");
-        }
-        return resouces;
     }
 
 

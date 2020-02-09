@@ -30,24 +30,6 @@ public interface IBlockTransferIntoService extends IService<BlockTransferInto> {
      */
     boolean updateById(BlockTransferInto into);
 
-    /**
-     * 修改状态
-     * <p>
-     *
-     * @param id     id
-     * @param status 状态
-     */
-    void changeStatus(Integer id, TransferStatus status);
-
-
-    /**
-     * 根据状态查询
-     * <p>
-     * 2019-11-09 10:48 hux ++
-     *
-     * @param status 状态
-     */
-    List<BlockTransferInto> listByStatus(TransferStatus status);
 
     /**
      * 保存充值记录
