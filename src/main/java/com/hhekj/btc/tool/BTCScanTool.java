@@ -176,7 +176,7 @@ public class BTCScanTool {
             String result = walletKit.signRawTransaction(hexstring,privateKey);
             JSONObject jsonObject = JSONObject.parseObject(result);
             TransferInfo transaction = jsonObject.toJavaObject(TransferInfo.class);
-            System.out.println(transaction);
+
             return transaction;
         }catch(Throwable e){
             e.printStackTrace();

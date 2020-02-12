@@ -11,7 +11,7 @@ import lombok.Data;
  * Table: digital_coin_address
  */
 @Data
-@TableName("btc_coin_address")
+@TableName("digital_coin_address")
 public class DigitalCoinAddress {
     /**
      * Column: id
@@ -60,12 +60,8 @@ public class DigitalCoinAddress {
     @JsonIgnore
     private String createTime;
 
-    /**
-     * Column: mnemonics
-     * Remark: 助记词
-     */
 
-    private String mnemonics;
+    private Integer salt;
 
     /**
      * Column: create_time

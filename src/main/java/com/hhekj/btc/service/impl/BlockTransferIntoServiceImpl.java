@@ -1,5 +1,6 @@
 package com.hhekj.btc.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.hhekj.btc.common.TransferStatus;
 import com.hhekj.btc.mapper.BlockTransferIntoMapper;
@@ -25,6 +26,11 @@ public class BlockTransferIntoServiceImpl
     @Resource
     private BlockTransferIntoMapper mapper;
 
+
+    @Override
+    public BlockTransferInto find(QueryWrapper<BlockTransferInto> queryWrapper) {
+        return mapper.selectOne(queryWrapper);
+    }
 
     @Override
     public boolean existsTxHash(String txHash) {

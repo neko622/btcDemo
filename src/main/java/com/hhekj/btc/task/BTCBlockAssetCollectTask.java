@@ -49,10 +49,13 @@ public class BTCBlockAssetCollectTask {
     private static final String address = "BTC";
 
 
+    /**归集地址*/
+    private static final String ADDRESS = "3H1FgivSZDvMiykih6VbKxQG1api4fLuQq";
+
 
     // 资金归集
 //    @Scheduled(cron = "*/60 * * * * ?")
-    @Scheduled(fixedDelay=50000)
+//    @Scheduled(fixedDelay=50000)
     public  void assetCollect() {
 
         log.info("归集");
@@ -67,12 +70,12 @@ public class BTCBlockAssetCollectTask {
             log.info("没有需要归集的用户");
             return;
         }
-        // 获取收付款的账户
-        SysPayment expend = sysPaymentService.expendAddress(address);
-        if (expend == null) {
-            log.error("未获取到付款账户");
-            return;
-        }
+//        // 获取收付款的账户
+//        SysPayment expend = sysPaymentService.expendAddress(address);
+//        if (expend == null) {
+//            log.error("未获取到付款账户");
+//            return;
+//        }
 
         for (BlockTransferInto into : list) {
             if (!Objects.equals(into.getCoinId(), mainId)) {
@@ -119,7 +122,7 @@ public class BTCBlockAssetCollectTask {
                 obj.put("vout", utxo.getVout());
                 Object[] arr = new Object[]{obj};
                 JSONObject map = new JSONObject();
-                map.put(expend.getAddress(), utxo.getAmount().subtract(fees));
+                map.put(ADDRESS, utxo.getAmount().subtract(fees));
                 String transactionStr = BTCScanTool.createRawTransaction(arr, map);
 
                 String privateKey = coinAddress.getPrivateKey();
@@ -128,6 +131,9 @@ public class BTCBlockAssetCollectTask {
 
                 //签名裸交易
                 TransferInfo info = BTCScanTool.signRawTransaction(transactionStr, privateKeyArr);
+                if (info == null){
+                    return;
+                }
 
                 //广播裸交易
                 String s = BTCScanTool.sendRawTransaction(info.getHex());
@@ -145,7 +151,7 @@ public class BTCBlockAssetCollectTask {
     }
 
     // 资金归集确认
-    @Scheduled(fixedDelay = 60000)
+//    @Scheduled(fixedDelay = 60000)
     public void collectVerify() {
         // 获取需要确认的列表
         try {

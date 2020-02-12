@@ -28,4 +28,6 @@ public interface DigitalCoinAddressService extends IService<DigitalCoinAddress> 
     DigitalCoinAddress find(QueryWrapper<DigitalCoinAddress> queryWrapper);
 
 
+    List<DigitalCoinAddress> findAll(QueryWrapper<DigitalCoinAddress> queryWrapper);
+
 }

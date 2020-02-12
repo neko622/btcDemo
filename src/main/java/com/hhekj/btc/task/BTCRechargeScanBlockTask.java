@@ -1,10 +1,8 @@
 package com.hhekj.btc.task;
 
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.hhekj.btc.model.*;
-import com.hhekj.btc.service.DigitalCoinAddressService;
-import com.hhekj.btc.service.DigitalCoinService;
-import com.hhekj.btc.service.IBlockTransferIntoService;
-import com.hhekj.btc.service.ISysDictionaryService;
+import com.hhekj.btc.service.*;
 import com.hhekj.btc.tool.BTCScanTool;
 import com.hhekj.btc.tool.NewDateKit;
 import jnr.ffi.annotations.In;
@@ -48,6 +46,8 @@ public class BTCRechargeScanBlockTask {
     @Resource
     private IBlockTransferIntoService blockTransferIntoService;
 
+    @Resource
+    private UserAccountService userAccountService;
 
 
     /**
@@ -55,16 +55,16 @@ public class BTCRechargeScanBlockTask {
      */
 //    @Scheduled(cron = "*/1 * * * * ?")
     @Async
-    @Scheduled(fixedDelay=50000)
+    @Scheduled(fixedDelay=3*60*1000)
     public  void scan() {
         log.info("扫块");
         BtcBlock newBlock = BTCScanTool.scanNewBlock();
         BigInteger nowBlockNum = new BigInteger(newBlock.getHeight()); //当前区块高度
         Integer latestScanBlockNum = dictionaryService.findBtcLatestScanBlock(); //扫描过的最新区块号
-//        Integer latestScanBlockNum = 1665118;
+
         log.info("保存的高度： "+latestScanBlockNum);
         //如果上一次的区块高度是null的话就从最新的开始扫
-        if (null == latestScanBlockNum || nowBlockNum.subtract(BigInteger.valueOf(latestScanBlockNum)).intValue() < 1) {
+        if (null == latestScanBlockNum ) {
             //修改为最新区块号码
             dictionaryService.updateBtcLatestScanBlock(nowBlockNum.intValue());
             return;
@@ -99,6 +99,7 @@ public class BTCRechargeScanBlockTask {
 
 //                                //判断收款地址是否在本平台(与数据库的钱包地址比对)，不在就return
                                 Integer userId = digitalCoinAddressService.findUserIdByAddress(s);
+
                                 if (null == userId) {
                                     continue;
                                 }
@@ -117,8 +118,8 @@ public class BTCRechargeScanBlockTask {
                                 log.info(s+"  address");
                                 BlockTransferInto into = new BlockTransferInto();
                                 into.setToId(userId);
-                                into.setToAddress(s);
                                 into.setAmount(value);
+                                into.setToAddress(s);
                                 into.setCoinId(coin.getId());
                                 into.setCreateTime(NewDateKit.now());
                                 into.setCollect(0);
@@ -126,9 +127,33 @@ public class BTCRechargeScanBlockTask {
                                 into.setStatus(1);
                                 into.setAudit("ok");
                                 into.setFromAddress("");
-                                boolean bool = blockTransferIntoService.save(into);
-                                System.out.println(bool);
-//                                // 保存充值记录
+
+                                QueryWrapper<BlockTransferInto> wrapper = new QueryWrapper<>();
+                                wrapper.eq("tx_hash", txId);
+                                wrapper.eq("coin_id", coin.getId());
+                                BlockTransferInto transferInto = blockTransferIntoService.find(wrapper);
+                                if (transferInto != null){
+                                    continue;
+                                }
+
+                                boolean bool = blockTransferIntoService.save(into); // 保存充值记录
+
+                                UserAccount userAccount = new UserAccount();
+                                userAccount.setCoinId(coin.getId());
+                                userAccount.setType(1);
+                                userAccount.setUserId(userId);
+                                userAccount.setCreateTime(NewDateKit.now());
+                                userAccountService.idempotentSave(userAccount);
+
+                                QueryWrapper<UserAccount> queryWrapper = new QueryWrapper<>();
+                                queryWrapper.eq("coin_id", coin.getId());
+                                queryWrapper.eq("user_id", userId);
+                                queryWrapper.eq("type", 1);
+                                UserAccount user = userAccountService.find(queryWrapper);
+                                BigDecimal total = user.getAmount().add(value);
+                                user.setAmount(total);
+                                userAccountService.updateById(user);//修改用户金额
+
                             }
                         }
                     }
@@ -138,9 +163,10 @@ public class BTCRechargeScanBlockTask {
         }
         //扫描完成后把数据库的区块号改成最新的
         boolean isSuccess = dictionaryService.updateBtcLatestScanBlock(nowBlockNum.intValue());
-        if(!isSuccess){
-            TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
-        }
+        log.info("now "+nowBlockNum.intValue());
+//        if(!isSuccess){
+//            TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+//        }
 
     }
 

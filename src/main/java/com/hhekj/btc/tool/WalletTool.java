@@ -26,7 +26,7 @@ import java.security.SecureRandom;
 @Slf4j
 public class WalletTool {
 
-    private final static String BTCTYPE = "44H / 1H / 0H / 0 / 0";
+    private final static String BTCTYPE = "44H / 0H / 0H / 0 / 0";
 
 
     /*1LYD62rK2qR6BtUiWQqzeTKyGd8hcVNoej*/
@@ -64,12 +64,12 @@ public class WalletTool {
 
         String publicKey = Numeric.toHexStringNoPrefixZeroPadded(new BigInteger(ecKey.getPubKey()), 66);
         //主网参数
-//        String privateKey = ecKey.getPrivateKeyEncoded(MainNetParams.get()).toString();
-//        String address = ecKey.toAddress(MainNetParams.get()).toString();
+        String privateKey = ecKey.getPrivateKeyEncoded(MainNetParams.get()).toString();
+        String address = ecKey.toAddress(MainNetParams.get()).toString();
 
         //测试网参数
-        String privateKey = ecKey.getPrivateKeyEncoded(TestNet3Params.get()).toString();
-        String address = ecKey.toAddress(TestNet3Params.get()).toString();
+//        String privateKey = ecKey.getPrivateKeyEncoded(TestNet3Params.get()).toString();
+//        String address = ecKey.toAddress(TestNet3Params.get()).toString();
          log.info(privateKey);
          log.info(address);
         BtcWalletAccount btcWallet = BtcWalletAccount.builder().address(address).publicKey(publicKey).privateKey(privateKey).mnemonic(mnemonics).build();

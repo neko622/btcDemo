@@ -23,7 +23,7 @@ public class RpcKit {
     private final static String RPCUSER = "test";
     private final static String RPCPASSWORD = "test";
 
-    private final static String url = "http://35.185.181.99:18332/wallet/btctest";
+    private final static String url = "http://35.185.181.99:8332";
 
 
     private JsonRpcHttpClient client;
@@ -260,7 +260,7 @@ public class RpcKit {
      * 导入私钥
      * */
     public Object importPrivKey(String privateKey)throws Throwable{
-        return client.invoke("importprivkey", new Object[]{privateKey,"btctest",true}, Object.class);
+        return client.invoke("importprivkey", new Object[]{privateKey,"",true}, Object.class);
     }
 
 }

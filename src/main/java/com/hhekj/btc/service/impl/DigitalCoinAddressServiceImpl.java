@@ -38,4 +38,8 @@ public class DigitalCoinAddressServiceImpl
         return mapper.selectOne(queryWrapper);
     }
 
+    @Override
+    public List<DigitalCoinAddress> findAll(QueryWrapper<DigitalCoinAddress> queryWrapper) {
+        return mapper.selectList(queryWrapper);
+    }
 }

@@ -1,8 +1,10 @@
 package com.hhekj.btc.service;
 
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.hhekj.btc.common.TransferStatus;
 import com.hhekj.btc.model.BlockTransferInto;
+import com.hhekj.btc.model.UserAccount;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -14,6 +16,9 @@ import java.util.Map;
  * description :
  */
 public interface IBlockTransferIntoService extends IService<BlockTransferInto> {
+
+    BlockTransferInto find(QueryWrapper<BlockTransferInto> queryWrapper);
+
 
     /**
      * 交易哈希是否已经保存过
@@ -89,5 +94,7 @@ public interface IBlockTransferIntoService extends IService<BlockTransferInto> {
      * 需要对账的资金归集列表
      */
     List<Map<String, Object>> collectVerify();
+
+
 
 }

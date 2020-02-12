@@ -18,7 +18,7 @@ public interface DigitalCoinAddressMapper extends BaseMapper<DigitalCoinAddress>
      *
      * @param address 钱包地址
      */
-    @Select("select user_id from btc_coin_address where address = #{address} ")
+    @Select("select user_id from digital_coin_address where address = #{address} ")
     Integer findUserIdByAddress(@Param("address") String address);
 
 
